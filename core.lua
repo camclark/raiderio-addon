@@ -159,6 +159,18 @@ do
         }
     }
 
+    ns.RAID_ACHIEVEMENT = {
+        -- start at 2 and 3 to match corresponding ns.RAID_DIFFICULTY
+        [2] = {
+            value = L.RAID_ACHIEVEMENT_AHEAD_OF_THE_CURVE,
+            color = { 0.64, 0.21, 0.93, hex = "a335ee" }
+        },
+        [3] = {
+            value = L.RAID_ACHIEVEMENT_CUTTING_EDGE,
+            color = { 1.00, 0.50, 0.00, hex = "ff8000" }
+        }
+    }
+
 end
 
 -- data.lua (ns)
@@ -3096,7 +3108,10 @@ do
             },
             ["Tichondrius"] = {
                 ["Johnsamdi"] = "Raider.IO Developer"
-            }
+            },
+            ["Frostmourne"] = {
+                ["Mythiarrus"] = "Raider.IO Addon contributor",
+            },
         }
     }
 
@@ -3398,7 +3413,8 @@ do
                                 if sortedProgress.isMainProgress then
                                     tooltip:AddDoubleLine(L.MAINS_RAID_PROGRESS, format("|cff%s%s|r %d/%d", raidDiff.color.hex, raidDiff.suffix, prog.progressCount, prog.raid.bossCount), 1, 1, 1, 1, 1, 1)
                                 else
-                                    tooltip:AddDoubleLine(format("%s %s", prog.raid.shortName, raidDiff.name), format("|cff%s%s|r %d/%d", raidDiff.color.hex, raidDiff.suffix, prog.progressCount, prog.raid.bossCount), 1, 1, 1, 1, 1, 1)
+                                    local raidAchievement = RaidAchievementFormat(prog, raidDiff)
+                                    tooltip:AddDoubleLine(format("%s %s %s", prog.raid.shortName, raidDiff.name, raidAchievement), format("|cff%s%s|r %d/%d", raidDiff.color.hex, raidDiff.suffix, prog.progressCount, prog.raid.bossCount), 1, 1, 1, 1, 1, 1)
                                 end
                             end
                         end
@@ -3483,6 +3499,18 @@ do
         end
         -- we couldn't add a profile to the tooltip
         return false
+    end
+
+    function RaidAchievementFormat(prog)
+        -- look for kill on final raid boss, return relevant achievement
+        local raidAchievementFormatted = ""
+
+        if (prog.difficulty > 1 and prog.killsPerBoss[#prog.killsPerBoss] > 0) then
+            local raidAchievement = ns.RAID_ACHIEVEMENT[prog.difficulty]
+            raidAchievementFormatted = format("|cff%s%s|r", raidAchievement.color.hex, raidAchievement.value)
+        end
+
+        return raidAchievementFormatted
     end
 
     ---@param state TooltipState
